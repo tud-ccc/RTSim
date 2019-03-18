@@ -32,7 +32,7 @@
 *   Tao Zhang       ( Email: tzz106 at cse dot psu dot edu
 *                     Website: http://www.cse.psu.edu/~tzz106 )
 *  
-* Racetrack/Domain wall memory support added by Asif Ali Khan in February 2019
+* Racetrack/Domain wall memory support added by Asif Ali Khan in January 2019
 * Email: asif_ali.khan@tu-dresden.de
 *
 * 
@@ -149,7 +149,6 @@ class SubArray : public NVMObject
     bool StaticPortAcces;
     bool LazyPortUpdate;
     
-
     SubArrayState state;
     BulkCommand nextCommand;
     NVMainRequest lastOperation;

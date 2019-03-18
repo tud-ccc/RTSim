@@ -1,6 +1,8 @@
 /*******************************************************************************
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
+* 
+* Copyright (c) 2019 TU Dresden
 * All rights reserved.
 * 
 * This source code is part of NVMain - A cycle accurate timing, bit accurate
@@ -29,52 +31,55 @@
 * Author list: 
 *   Matt Poremba    ( Email: mrp5060 at psu dot edu 
 *                     Website: http://www.cse.psu.edu/~poremba/ )
+*  
+* Racetrack/Domain wall memory support added by Asif Ali Khan in January 2019
+* Email: asif_ali.khan@tu-dresden.de
+*
 *******************************************************************************/
 
-#include "MemControl/MemoryControllerFactory.h"
-#include "MemControl/FCFS/FCFS.h"
-#include "MemControl/FRFCFS/FRFCFS.h"
-#include "MemControl/RTM/RTM.h"
-#include "MemControl/FRFCFS-WQF/FRFCFS-WQF.h"
-#include "MemControl/PerfectMemory/PerfectMemory.h"
-#include "MemControl/DRAMCache/DRAMCache.h"
-#include "MemControl/LH-Cache/LH-Cache.h"
-#include "MemControl/LO-Cache/LO-Cache.h"
-#include "MemControl/PredictorDRC/PredictorDRC.h"
 
-#include <iostream>
 
-using namespace NVM;
+#ifndef __RTM_H__
+#define __RTM_H__
 
-MemoryController *MemoryControllerFactory::CreateNewController( std::string controller ) 
+#include "src/MemoryController.h"
+#include <deque>
+
+namespace NVM {
+
+class RTM : public MemoryController
 {
-    MemoryController *memoryController = NULL;
+  public:
+    RTM( );
+    ~RTM( );
 
-    if( controller == "" )
-        std::cout << "NVMain: MEM_CTL is not set in configuration file!" << std::endl;
+    bool IssueCommand( NVMainRequest *req );
+    bool IsIssuable( NVMainRequest *request, FailReason *fail = NULL );
+    bool RequestComplete( NVMainRequest * request );
 
-    if( controller == "FCFS" )
-        memoryController = new FCFS( );
-    else if( controller == "FRFCFS" )
-        memoryController = new FRFCFS( );
-    else if( controller == "RTM" )
-        memoryController = new RTM( );
-    else if( controller == "FRFCFS-WQF" || controller == "FRFCFS_WQF" )
-        memoryController = new FRFCFS_WQF( );
-    else if( controller == "PerfectMemory" )
-        memoryController = new PerfectMemory( );
-    else if( controller == "DRC" )
-        memoryController = new DRAMCache( );
-    else if( controller == "LH_Cache" )
-        memoryController = new LH_Cache( );
-    else if( controller == "LO_Cache" )
-        memoryController = new LO_Cache( );
-    else if( controller == "PredictorDRC" )
-        memoryController = new PredictorDRC( );
+    void SetConfig( Config *conf, bool createChildren = true );
 
-    if( memoryController == NULL )
-        std::cout << "NVMain: Unknown memory controller `" 
-            << controller << "'." << std::endl;
+    void Cycle( ncycle_t steps );
 
-    return memoryController;
-}
+    void RegisterStats( );
+    void CalculateStats( );
+
+  private:
+    NVMTransactionQueue *memQueue;
+
+    /* Cached Configuration Variables*/
+    uint64_t queueSize;
+
+    /* Stats */
+    uint64_t measuredLatencies, measuredQueueLatencies, measuredTotalLatencies;
+    double averageLatency, averageQueueLatency, averageTotalLatency;
+    uint64_t mem_reads, mem_writes;
+    uint64_t rb_hits;
+    uint64_t rb_miss;
+    uint64_t starvation_precharges;
+    uint64_t write_pauses;
+};
+
+};
+
+#endif

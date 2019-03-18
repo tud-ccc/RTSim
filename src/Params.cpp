@@ -337,9 +337,9 @@ void Params::SetParams( Config *c )
     c->GetValueUL( "PeriodicStatsInterval", PeriodicStatsInterval );
 
     c->GetValueUL( "ROWS", ROWS );
-    c->GetValueUL( "ROWS", DBCS );
+  
     c->GetValueUL( "COLS", COLS );
-    c->GetValueUL( "COLS", DOMAINS );
+   
     c->GetValueUL( "CHANNELS", CHANNELS );
     c->GetValueUL( "RANKS", RANKS );
     c->GetValueUL( "BANKS", BANKS );
@@ -407,6 +407,11 @@ void Params::SetParams( Config *c )
     
     if( c->KeyExists( "MemType" ) )
     {
+          c->GetValueUL( "DBCS", DBCS );
+          c->GetValueUL( "DBCS", ROWS );
+          c->GetValueUL( "DOMAINS", COLS );
+          c->GetValueUL( "DOMAINS", DOMAINS );
+        
         if( c->GetString( "MemType" ) == "RTM" )
             MemIsRTM = true;
         else

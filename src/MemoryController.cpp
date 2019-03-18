@@ -1345,6 +1345,69 @@ bool MemoryController::FindRowBufferHit( std::list<NVMainRequest *>& transaction
 bool MemoryController::FindRowBufferHit( std::list<NVMainRequest *>& transactionQueue, 
                                          NVMainRequest **hitRequest, SchedulingPredicate& pred )
 {
+    
+    bool rv = false;
+    std::list<NVMainRequest *>::iterator it;
+
+    *hitRequest = NULL;
+
+    for( it = transactionQueue.begin(); it != transactionQueue.end(); it++ )
+    {
+        ncounter_t rank, bank, row, subarray, col;
+        ncounter_t queueId = GetCommandQueueId( (*it)->address );
+
+        if( !commandQueues[queueId].empty() ) continue;
+
+        (*it)->address.GetTranslatedAddress( &row, &col, &bank, &rank, NULL, &subarray );
+
+        /* By design, mux level can only be a subset of the selected columns. */
+        ncounter_t muxLevel = static_cast<ncounter_t>(col / p->RBSize);
+
+        if( activateQueued[rank][bank]                    /* The bank is active */ 
+            && activeSubArray[rank][bank][subarray]       /* The subarray is open */
+            && effectiveRow[rank][bank][subarray] == row  /* The effective row is the row of this request */ 
+            && effectiveMuxedRow[rank][bank][subarray] == muxLevel  /* Subset of row buffer is currently at the sense amps */
+            && !bankNeedRefresh[rank][bank]               /* The bank is not waiting for a refresh */
+            && !refreshQueued[rank][bank]                 /* Don't interrupt refreshes queued on bank group head. */
+            && (*it)->arrivalCycle != GetEventQueue()->GetCurrentCycle()
+            && commandQueues[queueId].empty( )            /* The request queue is empty */
+            && pred( (*it) ) )                            /* User-defined predicate is true */
+        {
+            *hitRequest = (*it);
+            transactionQueue.erase( it );
+
+            /* Different row buffer management policy has different behavior */ 
+
+            /* 
+             * if Relaxed Close-Page row buffer management policy is applied,
+             * we check whether there is another request has row buffer hit.
+             * if not, this request is the last request and we can close the
+             * row.
+             */
+            if( IsLastRequest( transactionQueue, (*hitRequest) ) )
+                (*hitRequest)->flags |= NVMainRequest::FLAG_LAST_REQUEST;
+
+            rv = true;
+
+            break;
+        }
+    }
+
+    return rv;
+}
+
+bool MemoryController::FindRTMRowBufferHit( std::list<NVMainRequest *>& transactionQueue, 
+                                         NVMainRequest **hitRequest )
+{
+    DummyPredicate pred;
+
+    return FindRTMRowBufferHit( transactionQueue, hitRequest, pred );
+}
+
+bool MemoryController::FindRTMRowBufferHit( std::list<NVMainRequest *>& transactionQueue, 
+                                         NVMainRequest **hitRequest, SchedulingPredicate& pred )
+{
+    
     bool rv = false;
     std::list<NVMainRequest *>::iterator it;
 

@@ -372,11 +372,11 @@ bool SubArray::Activate( NVMainRequest *request )
 
     nextRead = MAX( nextRead, 
                     GetEventQueue()->GetCurrentCycle() 
-                        + p->tRCD - p->tAL + p->tSH );
+                        + p->tRCD - p->tAL + p->tSH * (numShifts / wordSize) );
 
     nextWrite = MAX( nextWrite, 
                      GetEventQueue()->GetCurrentCycle() 
-                         + p->tRCD - p->tAL + p->tSH);
+                         + p->tRCD - p->tAL + p->tSH * (numShifts / wordSize) );
 
     nextPowerDown = MAX( nextPowerDown, 
                          GetEventQueue()->GetCurrentCycle() 
@@ -385,7 +385,7 @@ bool SubArray::Activate( NVMainRequest *request )
     /* the request is deleted by RequestComplete() */
     request->owner = this;
     GetEventQueue( )->InsertEvent( EventResponse, this, request, 
-                    GetEventQueue()->GetCurrentCycle() + p->tRCD );
+                    GetEventQueue()->GetCurrentCycle() + p->tRCD + p->tSH * (numShifts / wordSize) );
 
     /* 
      * The relative row number is record rather than the absolute row number 
@@ -812,7 +812,8 @@ bool SubArray::Shift( NVMainRequest *request )
      * Read could be served with either RW or R port, depending on the policy closer.
      * 
      */
-      
+     
+    numShifts = 0; //numShifts holds previous value. Updated it for the new request..
     /* select port */
     ncounter_t port = FindClosestPort(dbc, dom );
    
@@ -854,26 +855,26 @@ bool SubArray::Shift( NVMainRequest *request )
     }
 
     /* Update timing constraints */
-    nextPrecharge = MAX( nextPrecharge, 
-                         GetEventQueue()->GetCurrentCycle() 
-                             + MAX( p->tRCD, p->tRAS ) );
-
-    nextRead = MAX( nextRead, 
-                    GetEventQueue()->GetCurrentCycle() 
-                        + p->tRCD - p->tAL );
-
-    nextWrite = MAX( nextWrite, 
-                     GetEventQueue()->GetCurrentCycle() 
-                         + p->tRCD - p->tAL );
-
-    nextPowerDown = MAX( nextPowerDown, 
-                         GetEventQueue()->GetCurrentCycle() 
-                             + MAX( p->tRCD, p->tRAS ) );
+//     nextPrecharge = MAX( nextPrecharge, 
+//                          GetEventQueue()->GetCurrentCycle() 
+//                              + MAX( p->tRCD, p->tRAS ) );
+// 
+//     nextRead = MAX( nextRead, 
+//                     GetEventQueue()->GetCurrentCycle() 
+//                         + p->tRCD - p->tAL );
+// 
+//     nextWrite = MAX( nextWrite, 
+//                      GetEventQueue()->GetCurrentCycle() 
+//                          + p->tRCD - p->tAL );
+// 
+//     nextPowerDown = MAX( nextPowerDown, 
+//                          GetEventQueue()->GetCurrentCycle() 
+//                              + MAX( p->tRCD, p->tRAS ) );
 
     /* the request is deleted by RequestComplete() */
     request->owner = this;
     GetEventQueue( )->InsertEvent( EventResponse, this, request, 
-                    GetEventQueue()->GetCurrentCycle() + p->tSH ); //NOTE: We are not multiplying tSH by number of shifts because shifts of all tracks happen in parallel. This is the interleaved layout. In the serial layout, we will have to wait here for tSH * numShifts cycles.
+                    GetEventQueue()->GetCurrentCycle() + p->tSH); //NOTE: We are not multiplying tSH by number of shifts because shifts of all tracks happen in parallel. This is the interleaved layout. In the serial layout, we will have to wait here for tSH * numShifts cycles.
   
     lastActivate = GetEventQueue()->GetCurrentCycle();
     
@@ -892,7 +893,6 @@ bool SubArray::Shift( NVMainRequest *request )
         shiftEnergy += p->Esh * ( numShifts / wordSize );
     }
 
-    numShifts = 0;
     shiftReqs++;
     
     return true;
