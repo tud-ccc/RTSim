@@ -2,7 +2,8 @@
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * 
-* Copyright (c) 2019 TU Dresden
+* Copyright (c) 2019, Chair for Compiler Construction
+* Department of Computer Science, TU Dresden
 * 
 * All rights reserved.
 * 

@@ -2,7 +2,8 @@
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * 
-* Copyright (c) 2019 TU Dresden
+* Copyright (c) 2019, Chair for Compiler Construction
+* Department of Computer Science, TU Dresden
 * All rights reserved.
 * 
 * This source code is part of NVMain - A cycle accurate timing, bit accurate
@@ -47,6 +48,7 @@
 #include "src/NVMObject.h"
 #include "src/Config.h"
 #include "src/EnduranceModel.h"
+#include "src/MemoryController.h"
 #include "src/DataEncoder.h"
 #include "include/NVMAddress.h"
 #include "include/NVMainRequest.h"
@@ -233,6 +235,7 @@ class SubArray : public NVMObject
     ncounter_t CountBitsMLC2( uint8_t value, uint32_t *data, ncounter_t words );
     ncounter_t Count32MLC1( uint32_t data );
     ncounter_t CountBitsMLC1( uint8_t value, uint32_t *data, ncounter_t words );
+    
 };
 
 };

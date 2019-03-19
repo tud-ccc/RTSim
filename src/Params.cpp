@@ -2,8 +2,8 @@
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * 
-* Copyright (c) 2019 TU Dresden
-* 
+* Copyright (c) 2019, Chair for Compiler Construction
+* Department of Computer Science, TU Dresden
 * All rights reserved.
 * 
 * This source code is part of NVMain - A cycle accurate timing, bit accurate
@@ -164,7 +164,7 @@ Params::Params( )
     tPD = 6;
     tRAS = 24;
     tRCD = 9;
-    tSH = 0; //default value is set to 0 so that for other type of memories it does not effect the timings
+    tSH = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
     tRDB = 2;
     tREFW = 42666667;
     tRFC = 107;

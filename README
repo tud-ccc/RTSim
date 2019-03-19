@@ -1,6 +1,8 @@
 RTSim is developed on top of the NVMain simulator.
-This original README file of the NVMain nicely explains how to build the simulator and perform a test run.
-We leave this unchanged and give the racetrack memory specifics in a seperate file called RTM-README.
+This original README file of the NVMain nicely explains 
+how to build the simulator and perform a test run.
+We leave this unchanged and give the racetrack memory 
+specifics in a seperate file called RTM-README.
 Please refer to it if you are simulating RTM. 
 
 ======================================================

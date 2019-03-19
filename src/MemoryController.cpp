@@ -2,8 +2,8 @@
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * 
-* Copyright (c) 2019 TU Dresden
-* 
+* Copyright (c) 2019, Chair for Compiler Construction
+* Department of Computer Science, TU Dresden
 * All rights reserved.
 * 
 * This source code is part of NVMain - A cycle accurate timing, bit accurate
@@ -419,7 +419,7 @@ void MemoryController::SetConfig( Config *conf, bool createChildren )
      *  number of devices = bus width / device width
      *  Total channel size is: loglcal bank size * BANKS * RANKS
      */
-    std::cout << StatName( ) << " capacity is " << ((p->ROWS * p->COLS * p->tBURST * p->RATE * p->BusWidth * p->BANKS * p->RANKS) / (8*1024*1024)) << " MB." << std::endl;
+    std::cout << StatName( ) << " capacity is " << ((p->ROWS * p->COLS * p->tBURST * p->RATE * p->BusWidth * p->BANKS * p->RANKS) / (8*1024)) << " KB." << std::endl;
 
     if( conf->KeyExists( "MATHeight" ) )
     {
@@ -1407,7 +1407,8 @@ bool MemoryController::FindRTMRowBufferHit( std::list<NVMainRequest *>& transact
 bool MemoryController::FindRTMRowBufferHit( std::list<NVMainRequest *>& transactionQueue, 
                                          NVMainRequest **hitRequest, SchedulingPredicate& pred )
 {
-    
+//     std::cout<<"MC: Printing Port Positions: "<<rwPortPos[0][0]<<std::endl;
+
     bool rv = false;
     std::list<NVMainRequest *>::iterator it;
 

@@ -2,7 +2,8 @@
 * Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * 
-* Copyright (c) 2019 TU Dresden
+* Copyright (c) 2019, Chair for Compiler Construction
+* Department of Computer Science, TU Dresden
 * All rights reserved.
 * 
 * This source code is part of NVMain - A cycle accurate timing, bit accurate
@@ -44,7 +45,6 @@
 
 #include "src/SubArray.h"
 #include "src/Bank.h"
-#include "src/MemoryController.h"
 #include "src/EventQueue.h"
 #include "include/NVMHelpers.h"
 #include "Endurance/EnduranceModelFactory.h"
@@ -262,15 +262,6 @@ void SubArray::SetConfig( Config *c, bool createChildren )
 
 void SubArray::RegisterStats( )
 {
-    if( endrModel )
-    {
-        endrModel->RegisterStats( );
-    }
-
-    if( dataEncoder )
-    {
-        dataEncoder->RegisterStats( );
-    }
 
     if( p->EnergyModel == "current" )
     {
@@ -289,19 +280,12 @@ void SubArray::RegisterStats( )
         AddUnitStat(refreshEnergy, "nJ");
     }
 
-    AddStat(cancelledWrites);
-    AddStat(cancelledWriteTime);
-    AddStat(pausedWrites);
-
     AddStat(averagePausesPerRequest);
     AddStat(measuredPauses);
-
     AddStat(averagePausedRequestProgress);
     AddStat(measuredProgresses);
-
     AddStat(reads);
     AddStat(writes);
-   
     /* Register these stats only for RaceTrack Memory */
     if( p->MemIsRTM )
     {
@@ -309,11 +293,36 @@ void SubArray::RegisterStats( )
         AddUnitStat(shiftEnergy, "nJ");
         AddStat(totalnumShifts);
     }
+    else
+    {
+        if( endrModel )
+        {
+            endrModel->RegisterStats( );
+        }
+
+        if( dataEncoder )
+        {
+            dataEncoder->RegisterStats( );
+        }
+        
+        AddStat(cancelledWrites);
+        AddStat(cancelledWriteTime);
+        AddStat(pausedWrites);
+        AddStat(worstCaseWrite);
+        AddStat(num00Writes);
+        AddStat(num01Writes);
+        AddStat(num10Writes);
+        AddStat(num11Writes);
+        AddStat(mlcTimingHisto);
+        AddStat(cancelCountHisto);
+        AddStat(wpPauseHisto);
+        AddStat(wpCancelHisto);
+    }
     
     AddStat(activates);
     AddStat(precharges);
     AddStat(refreshes);
-
+    
     if( endrModel )
     {
         AddStat(worstCaseEndurance);
@@ -323,19 +332,8 @@ void SubArray::RegisterStats( )
     AddStat(actWaits);
     AddStat(actWaitTotal);
     AddStat(actWaitAverage);
-
-    AddStat(worstCaseWrite);
-    AddStat(num00Writes);
-    AddStat(num01Writes);
-    AddStat(num10Writes);
-    AddStat(num11Writes);
     AddStat(averageWriteTime);
     AddStat(measuredWriteTimes);
-
-    AddStat(mlcTimingHisto);
-    AddStat(cancelCountHisto);
-    AddStat(wpPauseHisto);
-    AddStat(wpCancelHisto);
 }
 
 /*
@@ -814,10 +812,16 @@ bool SubArray::Shift( NVMainRequest *request )
      */
      
     numShifts = 0; //numShifts holds previous value. Updated it for the new request..
+    
     /* select port */
-    ncounter_t port = FindClosestPort(dbc, dom );
+    ncounter_t port;
+    
+    if( request->type == WRITE || request->type == WRITE_PRECHARGE )
+        port = 0;
+    else
+        port = FindClosestPort(dbc, dom );
    
-    std::cout<<"SA: DBC: "<<dbc<< "\tDomain: "<<dom << "\tand selected AP: "<<port<<std::endl;
+//     std::cout<<"SA: DBC: "<<dbc<< "\tDomain: "<<dom << "\tand selected AP: "<<port<<std::endl;
     
     numShifts = abs(rwPortPos[dbc][port] - dom); //absolute of (current position - new position). This gives number of shifts for a single bit
         

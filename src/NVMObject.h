@@ -225,6 +225,7 @@ class NVMObject
     virtual void SetDebugName( std::string dn, Config *config );
 
   protected:
+    
     NVMObject_hook *parent;
     AddressTranslator *decoder;
     Stats *stats;
