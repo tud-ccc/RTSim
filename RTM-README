@@ -54,13 +54,18 @@ Sections
 
    ****************************************************
 
-   DOMAINS: represents number of domains per track (recommendation: keep the value in the power of 2, this eases the port assignment particularly the 'static'). 
+   DOMAINS: represents number of domains per track (recommendation: keep the value in the power of 2, this 
+	    eases the port assignment particularly the 'static'). 
+
 
    WordSize: represents number of tracks per DBC. Simulators such as destiny call it group size. 
-   
-   PortAccess: defines how ports are assigned to domains or the other way around. Possibel values are 'static' and 'dynamic' (ref to the article for more details). 
 
-   PortUpdate: eager -> always restore port to its initally assigned position after each read/write operation. 
+   
+   PortAccess: defines how ports are assigned to domains or the other way around. Possible values are 
+	       'static' and 'dynamic' (ref to the article for more details). 
+
+
+   PortUpdate: eager -> always restore port to its initially assigned position after each read/write operation. 
 	       lazy  -> update port position to the current access.
 
    
@@ -71,9 +76,16 @@ Sections
 
 3. output parameters
 	
-    shiftReqs: represent the total number of shift requests (before each read/write-request, the memorycontroller sends a shift command, so this should be equal to the number of read/write operations)
-    totalnumShifts: represents the total number of shifts (if currently AP is at location 0 and a memory request accesses location 5, this requires 5 shifts).
-    others such as ShiftEnergy etc are self-explanatory.
+    shiftReqs: represent the total number of shift requests (before each read/write-request, the memorycontroller 
+	       sends a shift command, so this should be equal to the number of read/write operations).
+
+
+    totalnumShifts: represents the total number of shifts (if currently AP is at location 0 and a memory request 
+		    accesses location 5, this requires 5 shifts).
+
+    
+    other parameters such as ShiftEnergy etc are self-explanatory.
+
 
 If you need any help in understanding and/or hacking the simulator, please reach us at asif_ali.khan@tu-dresden.de !
 
