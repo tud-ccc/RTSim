@@ -1,0 +1,10 @@
+
+/build
+/log
+/cputraces
+/traces_with_Ids
+.sconsign.dblite
+*.log
+*.o
+*.fast
+*.debug

@@ -1,0 +1,92 @@
+This document briefly explains important configuration 
+and result parameters in the simulation of racetrack memory (RTM).
+For understanding the overall architecture of RTM and terminologies 
+such as DBC, DOMAIN, Access Port etc, please refer to the following 
+article.
+
+ "RTSim: A Cycle-accurate Simulator for Racetrack Memories"
+
+========================================================
+Sections
+
+    1. The configuration file
+    2. RTM config parameters
+    3. O/p params
+
+------------------------------------------------------  
+
+1. The configuration file
+
+    Please provide 'RM.config' as your 
+    configuration file if you are simulating RTM. The RTM 
+    specific features are only defined in this file. Your 
+    command line should look like this.
+ 
+    ./nvmain.fast Config/RM.config Tests/Traces/hello_world.nvt 1000 
+
+
+    If you wish to simulate other type of memory i.e., STT-RAM, navigate
+    to its config file in the configuration folder.
+
+------------------------------------------------------
+
+2. RTM parameters
+    
+    While most of the parameters in the RM.config file are similar to other 
+    memories (channel, bank, rank etc), we do not discuss them here and briefly explain 
+    the important RTM specifc parameters.
+
+    'DBCS' are the number of DBCs per RTM bank. In the default configurations, there is one 
+     subarray per bank. However, this can be changed from the configuration file using the 'MATHeight' parameter.
+
+    SA-per-bank = DBCS / MATHeight
+
+    In the default file, the number of DBCs per bank are 256 and so is the MATHeight.
+    
+    NOTE: If you do not want to play with subarray level optimizations (parallelism etc), keep the number of 
+          DBCS and MATHeight the same.
+
+   ****************************************************
+
+   nPorts: represents the number of access ports (AP) per track. If it is set to one, it is assumed that the AP is a 
+           read/write port. In case of more than one ports, RTSim assumes that only 1 port (port-0) is read/write port
+	   and all other are read-only ports.
+
+   ****************************************************
+
+   DOMAINS: represents number of domains per track (recommendation: keep the value in the power of 2, this 
+	    eases the port assignment particularly the 'static'). 
+
+
+   WordSize: represents number of tracks per DBC. Simulators such as destiny call it group size. 
+
+   
+   PortAccess: defines how ports are assigned to domains or the other way around. Possible values are 
+	       'static' and 'dynamic' (ref to the article for more details). 
+
+
+   PortUpdate: eager -> always restore port to its initially assigned position after each read/write operation. 
+	       lazy  -> update port position to the current access.
+
+   
+   NOTE: All the timing and energy parameters in the Config file are obtained from Destiny simulator (2017 version). 
+         We, however, can not guarantee its correctness. 
+
+-----------------------------------------------------------
+
+3. output parameters
+	
+    shiftReqs: represent the total number of shift requests (before each read/write-request, the memorycontroller 
+	       sends a shift command, so this should be equal to the number of read/write operations).
+
+
+    totalnumShifts: represents the total number of shifts (if currently AP is at location 0 and a memory request 
+		    accesses location 5, this requires 5 shifts).
+
+    
+    other parameters such as ShiftEnergy etc are self-explanatory.
+
+
+If you need any help in understanding and/or hacking the simulator, please reach us at asif_ali.khan@tu-dresden.de !
+
+Created on 3/15/2019
