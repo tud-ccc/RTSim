@@ -138,7 +138,7 @@ class Params
     ncounter_t DBCS, DOMAINS, nPorts, rwPortInitPos;
     std::string PortAccess;
     std::string PortUpdate;
-    
+    std::string Layout;
     ncounter_t ROWS;
     ncounter_t COLS;
     ncounter_t CHANNELS;

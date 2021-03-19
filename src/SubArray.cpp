@@ -185,6 +185,11 @@ void SubArray::SetConfig( Config *c, bool createChildren )
         else
             LazyPortUpdate = false;
         
+        if( p->Layout == "Interleaved" )
+            InterleavedLayout = true;
+        else
+            InterleavedLayout = false;
+    
         nPorts = p->nPorts;
         DOMAINS = p->DOMAINS;
         
@@ -537,6 +542,12 @@ bool SubArray::Read( NVMainRequest *request )
     GetEventQueue( )->InsertEvent( EventResponse, this, request, 
             GetEventQueue()->GetCurrentCycle() + p->tCAS + p->tBURST + decLat );
     
+    if( !InterleavedLayout )
+    {
+        p->tRead = p->tRead * wordSize;
+        p->Eopenrd = p->Eopenrd * wordSize;
+    }
+    
     totalRunTime += p->tRead;
 
     /* Calculate energy */
@@ -747,6 +758,13 @@ bool SubArray::Write( NVMainRequest *request )
     writeEventTime = GetEventQueue()->GetCurrentCycle() + p->tCWD 
                      + MAX( p->tBURST, p->tCCD ) * request->burstCount + writeTimer;
     
+    
+    if( !InterleavedLayout )
+    {
+        p->tWrite = p->tWrite * wordSize;
+        p->Ewr = p->Ewr * wordSize;
+    }
+    
     totalRunTime += p->tWrite;
 
     /* The parent has our hook in the children list, we need to find this. */
@@ -850,18 +868,39 @@ bool SubArray::Shift( NVMainRequest *request )
     }
     
     /* updated AP position based on the port update policy (eager/lazy) */
-   
-    if( LazyPortUpdate ) //update policy is set to lazy in the config file
-    {
-        numShifts *= wordSize;      //numShifts for the entire word
-        rwPortPos[dbc][port] = dom; //Update head position to the current position
-    }
-    else
-    {
-        numShifts *= wordSize * 2; //numShifts for the entire word. In the eager policy, 2x shifts are incurred (align and come back)
-        rwPortPos[dbc][port] = rwPortInitPos[dbc][port]; //Reset this port to the initial position
-    }
     
+    if( InterleavedLayout )
+    {
+        if( LazyPortUpdate ) //update policy is set to lazy in the config file
+        {
+            numShifts *= wordSize;      //numShifts for the entire word
+            rwPortPos[dbc][port] = dom; //Update head position to the current position
+        }
+        else
+        {
+            numShifts *= wordSize * 2; //numShifts for the entire word. In the eager policy, 2x shifts are incurred (align and come back)
+            rwPortPos[dbc][port] = rwPortInitPos[dbc][port]; //Reset this port to the initial position
+        }
+    }
+    else /*The data is stored in the serial fashion */
+    {
+        if( LazyPortUpdate ) //update policy is set to lazy in the config file
+        {
+            numShifts = wordSize;      //numShifts for the entire word
+            rwPortPos[dbc][port] = dom; //Update head position to the current position
+        }
+        else
+        {
+            numShifts = wordSize * 2; //numShifts for the entire word. In the eager policy, 2x shifts are incurred (align and come back)
+            rwPortPos[dbc][port] = rwPortInitPos[dbc][port]; //Reset this port to the initial position
+        }
+        
+        // Now set the timing/energy parameters
+        p->tSH = p->tSH * numShifts;
+        p->Esh = p->Esh * numShifts;
+    }
+   
+
     /* updated the total number of shifts */
     totalnumShifts += numShifts; 
     

@@ -146,7 +146,7 @@ Params::Params( )
     
     PortAccess = "static";
     PortUpdate = "lazy";
-    
+    Layout = "Interleaved";
     CHANNELS = 2;
     RANKS = 2;
     BANKS = 8;
@@ -396,7 +396,7 @@ void Params::SetParams( Config *c )
     
     c->GetString( "PortAccess", PortAccess );
     c->GetString( "PortUpdate", PortUpdate );
-   
+    c->GetString( "Layout", Layout );
    
     c->GetString( "MemoryPrefetcher", MemoryPrefetcher );
     c->GetValueUL( "PrefetchBufferSize", PrefetchBufferSize );

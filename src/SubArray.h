@@ -150,7 +150,7 @@ class SubArray : public NVMObject
     ncounter_t nPorts;
     bool StaticPortAcces;
     bool LazyPortUpdate;
-    
+    bool InterleavedLayout;
     SubArrayState state;
     BulkCommand nextCommand;
     NVMainRequest lastOperation;
