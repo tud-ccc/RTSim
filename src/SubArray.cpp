@@ -473,9 +473,6 @@ bool SubArray::Read( NVMainRequest *request )
      * latency and energy !.
      ***************************************************************/
     
-//     if( !Shift( readDBC, readDomain ) )
-//         std::cout<<"Subarray: Shift function has returned error. !!"<<std::endl;
-    
     /* Any additional latency for data encoding. */
     ncycles_t decLat = (dataEncoder ? dataEncoder->Read( request ) : 0);
 
@@ -629,15 +626,6 @@ bool SubArray::Write( NVMainRequest *request )
         return false;
     }
     
-    
-    /************************ONLY FOR RTM***************************
-     * Before accessing the subarray, perform the shifting operation
-     * to align port position to the requested data and incur 
-     * latency and energy !.
-     ***************************************************************/
-    
-//     if( !Shift( writeDBC, writeDomain ) )
-//         std::cout<<"Subarray: Shift function has returned error. !!"<<std::endl;
     
     if( writeMode == WRITE_THROUGH )
     {
@@ -886,17 +874,17 @@ bool SubArray::Shift( NVMainRequest *request )
     {
         if( LazyPortUpdate ) //update policy is set to lazy in the config file
         {
-            numShifts = wordSize;      //numShifts for the entire word
-            rwPortPos[dbc][port] = dom; //Update head position to the current position
+            numShifts += wordSize;      //numShifts for the entire word
+            rwPortPos[dbc][port] = dom + wordSize; //Update head position to the current position
         }
         else
         {
-            numShifts = wordSize * 2; //numShifts for the entire word. In the eager policy, 2x shifts are incurred (align and come back)
+            numShifts += wordSize * 2; //numShifts for the entire word. In the eager policy, 2x shifts are incurred (align and come back)
             rwPortPos[dbc][port] = rwPortInitPos[dbc][port]; //Reset this port to the initial position
         }
         
         // Now set the timing/energy parameters
-        p->tSH = p->tSH * numShifts;
+        p->tShift = p->tShift * numShifts;
         p->Esh = p->Esh * numShifts;
     }
    
@@ -951,6 +939,8 @@ bool SubArray::Shift( NVMainRequest *request )
         
         totalDynEnergy += p->Esh * ( numShifts / wordSize );
     }
+    
+    numShifts = 0;
 
     shiftReqs++;
     
