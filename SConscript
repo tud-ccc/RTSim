@@ -91,6 +91,6 @@ elif "NVMAINPATH" in os.environ:
     # Nothing to be done here for now.
     pass
 else:
-    print "ERROR: What kind of build is this?"
+    print("ERROR: What kind of build is this?")
     sys.exit(1)
 
