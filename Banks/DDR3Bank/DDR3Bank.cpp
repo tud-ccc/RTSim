@@ -112,6 +112,11 @@ DDR3Bank::DDR3Bank( )
     precharges = 0;
     refreshes = 0;
 
+    //RTM
+    shiftReqs = 0;
+    shiftEnergy = 0.0f;
+    totalnumShifts = 0;
+
     actWaits = 0;
     actWaitTotal = 0;
     actWaitAverage = 0.0;
@@ -207,6 +212,14 @@ void DDR3Bank::RegisterStats( )
     AddStat(activates);
     AddStat(precharges);
     AddStat(refreshes);
+
+    /* Register these stats only for RaceTrack Memory */
+    if( p->MemIsRTM )
+    {
+        AddStat(shiftReqs);
+        AddUnitStat(shiftEnergy, "nJ");
+        AddStat(totalnumShifts);
+    }
 
     AddStat(activeCycles);
     AddStat(standbyCycles);
@@ -386,6 +399,8 @@ bool DDR3Bank::Shift( NVMainRequest *request )
     
     /* issue SHIFT to the target subarray */
     bool success = GetChild( request )->IssueCommand( request );
+
+    shiftReqs++;
 
     return success;
 }
@@ -1035,7 +1050,7 @@ void DDR3Bank::CalculateStats( )
     else
         utilization = 0.0f;
 
-    bankEnergy = activeEnergy = burstEnergy = refreshEnergy 
+    bankEnergy = activeEnergy = burstEnergy = refreshEnergy = shiftEnergy 
                = 0.0f;
 
     for( unsigned saIdx = 0; saIdx < subArrayNum; saIdx++ )
@@ -1044,11 +1059,17 @@ void DDR3Bank::CalculateStats( )
         StatType actEstat = GetStat( GetChild(saIdx), "activeEnergy" );
         StatType bstEstat = GetStat( GetChild(saIdx), "burstEnergy" );
         StatType refEstat = GetStat( GetChild(saIdx), "refreshEnergy" );
+        StatType shiEstat = GetStat( GetChild(saIdx), "shiftEnergy");
+
+        //RTM 
+        StatType totalnumShi = GetStat( GetChild(saIdx), "totalnumShifts" );
+        totalnumShifts = CastStat(totalnumShi, ncounter_t);
 
         bankEnergy += CastStat( saEstat, double );
         activeEnergy += CastStat( actEstat, double );
         burstEnergy += CastStat( bstEstat, double );
         refreshEnergy += CastStat( refEstat, double );
+        shiftEnergy += CastStat(shiEstat, double);
     }
 
     CalculatePower( );

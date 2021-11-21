@@ -80,6 +80,11 @@ StandardRank::StandardRank( )
     reads = 0;
     writes = 0;
 
+    //RTM
+    shiftReqs = 0;
+    shiftEnergy = 0.0f;
+    totalnumShifts = 0;
+
     actWaits = 0;
     actWaitTotal = 0;
     actWaitAverage = 0.0;
@@ -227,6 +232,13 @@ void StandardRank::RegisterStats( )
 
     AddStat(reads);
     AddStat(writes);
+    /* Register these stats only for RaceTrack Memory */
+    if( p->MemIsRTM )
+    {
+        AddStat(shiftReqs);
+        AddUnitStat(shiftEnergy, "nJ");
+        AddStat(totalnumShifts);
+    }
 
     AddStat(activeCycles);
     AddStat(standbyCycles);
@@ -307,6 +319,8 @@ bool StandardRank::Shift( NVMainRequest *request )
 {
     /* issue SHIFT to target bank */
     GetChild( request )->IssueCommand( request );
+
+    shiftReqs++;
 
     return true;
 }
@@ -975,7 +989,7 @@ void StandardRank::CalculateStats( )
 {
     NVMObject::CalculateStats( );
 
-    totalEnergy = activateEnergy = burstEnergy = refreshEnergy = 0.0;
+    totalEnergy = activateEnergy = burstEnergy = refreshEnergy = shiftEnergy = 0.0;
     totalPower = backgroundPower = activatePower = burstPower = refreshPower = 0.0;
     reads = writes = 0;
 
@@ -985,11 +999,17 @@ void StandardRank::CalculateStats( )
         StatType actEstat =  GetStat( GetChild(i), "activeEnergy" );
         StatType bstEstat =  GetStat( GetChild(i), "burstEnergy" );
         StatType refEstat =  GetStat( GetChild(i), "refreshEnergy" );
+        StatType shiEstat =  GetStat( GetChild(i), "shiftEnergy" );
+
+        //RTM 
+        StatType totalnumShi = GetStat( GetChild(i), "totalnumShifts" );
+        totalnumShifts = CastStat(totalnumShi, ncounter_t);
 
         totalEnergy += CastStat( bankEstat, double );
         activateEnergy += CastStat( actEstat, double );
         burstEnergy += CastStat( bstEstat, double );
         refreshEnergy += CastStat( refEstat, double );
+        shiftEnergy += CastStat( shiEstat, double);
 
         StatType readCount = GetStat( GetChild(i), "reads" );
         StatType writeCount = GetStat( GetChild(i), "writes" );

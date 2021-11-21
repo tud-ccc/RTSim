@@ -131,6 +131,11 @@ class DDR3Bank : public Bank
     ncounter_t slowExitPrechargeCycles;
     ncounter_t powerCycles;
 
+    //RTM Stats
+    ncounter_t shiftReqs;
+    ncounter_t totalnumShifts;
+    double shiftEnergy;
+
     ncycle_t lastActivate;
     ncycle_t nextActivate;
     ncycle_t nextPrecharge;

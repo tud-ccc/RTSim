@@ -120,6 +120,12 @@ class StandardRank : public Rank
     ncycle_t nextActivate;
     ncycle_t nextPrecharge;
 
+    //RTM Stats
+    ncounter_t shiftReqs;
+    ncounter_t totalnumShifts;
+    double shiftEnergy;
+
+
     ncounter_t activeCycles;
     ncounter_t standbyCycles;
     ncounter_t fastExitActiveCycles;

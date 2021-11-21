@@ -25,7 +25,7 @@ build_type = GetOption("build_type")
 
 if build_type == None or build_type == "fast":
     env.Append(CCFLAGS='-O3')
-    env.Append(CCFLAGS='-Werror')
+    #env.Append(CCFLAGS='-Werror')
     env.Append(CCFLAGS='-Wall')
     env.Append(CCFLAGS='-Wextra')
     env.Append(CCFLAGS='-Woverloaded-virtual')
