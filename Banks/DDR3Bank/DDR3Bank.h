@@ -173,6 +173,8 @@ class DDR3Bank : public Bank
  
     virtual bool Activate( NVMainRequest *request );
     virtual bool Shift( NVMainRequest *request );
+    virtual bool Insert( NVMainRequest *request );
+    virtual bool Delete( NVMainRequest *request );
     virtual bool Read( NVMainRequest *request );
     virtual bool Write( NVMainRequest *request );
     virtual bool Precharge( NVMainRequest *request );

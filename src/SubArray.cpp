@@ -127,6 +127,8 @@ SubArray::SubArray( )
     reads = 0;
     writes = 0;
     shiftReqs = 0;
+    insertReqs = 0;
+    deleteReqs = 0;
     activates = 0;
     precharges = 0;
     refreshes = 0;
@@ -292,7 +294,14 @@ void SubArray::RegisterStats( )
         AddStat(shiftReqs);
         AddUnitStat(shiftEnergy, "nJ");
         AddStat(totalnumShifts);
-    }
+        AddStat(insertReqs);
+        AddStat(deleteReqs);
+        if (p->MemIsSK)
+        {
+            AddStat(numSkyrmionCreated);
+            AddStat(numSkyrmionDestroyed);
+        }
+    }    
     else
     {
         if( endrModel )
@@ -453,8 +462,8 @@ bool SubArray::Read( NVMainRequest *request )
         std::cerr << "NVMain Error: try to read a row that is not opened in a subarray!"
             << std::endl;
         return false;
-    }
-    
+    }    
+
     /************************ONLY FOR RTM***************************
      * Before accessing the subarray, perform the shifting operation
      * to align port position to the requested data and incur 
@@ -609,7 +618,6 @@ bool SubArray::Write( NVMainRequest *request )
         return false;
     }
     
-    
     /************************ONLY FOR RTM***************************
      * Before accessing the subarray, perform the shifting operation
      * to align port position to the requested data and incur 
@@ -620,7 +628,7 @@ bool SubArray::Write( NVMainRequest *request )
 //         std::cout<<"Subarray: Shift function has returned error. !!"<<std::endl;
     
     if( writeMode == WRITE_THROUGH )
-    {
+    {       
         encLat = (dataEncoder ? dataEncoder->Write( request ) : 0);
         endrLat = UpdateEndurance( request );
 
@@ -641,6 +649,28 @@ bool SubArray::Write( NVMainRequest *request )
 
             assert( request->data.GetSize()*8 >= numChangedBits );
             numUnchangedBits = request->data.GetSize()*8 - numChangedBits;
+        }
+
+        if ( p->MemIsSK)
+        {
+            // Determine number of skyrmions created/deleted during writing
+            // Assume wordsize in bits, so shift through wordsize bits of old and new request
+
+            for (uint32_t bit = 0; bit < wordSize; bit++) {
+                bool after = request->data.GetByte(bit / 8) & (0b1 << (bit % 8));
+                bool before = request->oldData.GetByte(bit / 8) & (0b1 << (bit % 8));
+
+                if (after && !before) 
+                {
+                    // If skyrmion will be written and no exists before
+                    numSkyrmionCreated++;
+                } 
+                else if(!after && before) 
+                {                    
+                    // If no skyrmion written, but one exists before
+                    numSkyrmionDestroyed++;
+                }
+            }            
         }
     }
 
@@ -801,7 +831,7 @@ bool SubArray::Write( NVMainRequest *request )
 bool SubArray::Shift( NVMainRequest *request )
 {
     uint64_t dbc, dom;
-    request->address.GetTranslatedAddress( &dbc, &dom, NULL, NULL, NULL, NULL );
+    request->address.GetTranslatedAddress( &dbc, &dom, NULL, NULL, NULL, NULL );    
     
      /* 
      * Decide which access port will be used, based on the PortAccessPolicy.
@@ -816,23 +846,25 @@ bool SubArray::Shift( NVMainRequest *request )
     /* select port */
     ncounter_t port;
     
-    if( request->type == WRITE || request->type == WRITE_PRECHARGE )
-        port = 0;
-    else
-        port = FindClosestPort(dbc, dom );
+    // if( request->type == WRITE || request->type == WRITE_PRECHARGE )
+    //     port = 0;
+    // else
+    port = FindClosestPort(dbc, dom ); //All ports are RW ports
    
-//     std::cout<<"SA: DBC: "<<dbc<< "\tDomain: "<<dom << "\tand selected AP: "<<port<<std::endl;
+    // std::cout<<"SA: DBC: "<<dbc<< "\tDomain: "<<dom << "\tand time AP: "<<port<<std::endl;
     
-    numShifts = abs(rwPortPos[dbc][port] - dom); //absolute of (current position - new position). This gives number of shifts for a single bit
+    numShifts = abs(int(rwPortPos[dbc][port] - dom)); //absolute of (current position - new position). This gives number of shifts for a single bit
+
+    // std::cout << numShifts << std::endl;
         
     for( ncounter_t i = 0; i < nPorts; i++)
     {
       if( i != port)
       {
         if( rwPortPos[dbc][port] < int(dom) )
-            rwPortPos[dbc][i] += abs(rwPortPos[dbc][port] - dom);
+            rwPortPos[dbc][i] += abs(int(rwPortPos[dbc][port] - dom));
         else
-            rwPortPos[dbc][i] -= abs(rwPortPos[dbc][port] - dom);
+            rwPortPos[dbc][i] -= abs(int(rwPortPos[dbc][port] - dom));
       }
     }
     
@@ -900,6 +932,74 @@ bool SubArray::Shift( NVMainRequest *request )
     shiftReqs++;
     
     return true;
+}
+
+bool SubArray::Insert( NVMainRequest *request ) {
+    
+    // Skyrmion insert adds a skyrmion inside a racetrack and shifts the remaining skyrmions
+    uint64_t dbc, dom;    
+    request->address.GetTranslatedAddress( &dbc, &dom, NULL, NULL, NULL, NULL );
+
+    insertReqs++;
+    numInserts++;
+    totalnumInserts++;
+
+    if ( p->MemIsSK)
+    {
+        // Determine number of skyrmions created during insert
+        // Assume wordsize in bits, so shift through wordsize bits of old and new request
+
+        for (uint32_t bit = 0; bit < wordSize; bit++) {
+            bool after = request->data.GetByte(bit / 8) & (0b1 << (bit % 8));
+
+            if (after) 
+            {
+                // If skyrmion will be written
+                numSkyrmionCreated++;
+            }
+        }            
+    }
+
+    GetEventQueue( )->InsertEvent( EventResponse, this, request, 
+                    GetEventQueue()->GetCurrentCycle() + p->tIN);
+  
+    lastActivate = GetEventQueue()->GetCurrentCycle();
+
+    return true; // TODO
+}
+
+bool SubArray::Delete( NVMainRequest *request ) {
+    
+    // Skyrmion delete removes a skyrmion and shifts the remaining racetrack to fill
+    uint64_t dbc, dom;
+    request->address.GetTranslatedAddress( &dbc, &dom, NULL, NULL, NULL, NULL );
+
+    deleteReqs++;
+    numDeletes++;
+    totalnumDeletes++;
+
+    if ( p->MemIsSK)
+    {
+        // Determine number of skyrmions created/deleted during writing
+        // Assume wordsize in bits, so shift through wordsize bits of old and new request
+
+        for (uint32_t bit = 0; bit < wordSize; bit++) {
+            bool before = request->oldData.GetByte(bit / 8) & (0b1 << (bit % 8));
+
+            if(before) 
+            {                    
+                // If no skyrmion written, but one exists before
+                numSkyrmionDestroyed++;
+            }
+        }            
+    }
+
+    GetEventQueue( )->InsertEvent( EventResponse, this, request, 
+                    GetEventQueue()->GetCurrentCycle() + p->tDE);
+  
+    lastActivate = GetEventQueue()->GetCurrentCycle();    
+
+    return true; // TODO
 }
 
 
@@ -1341,6 +1441,10 @@ bool SubArray::IsIssuable( NVMainRequest *req, FailReason *reason )
     {
         /* We assume subarray can always shift, because ACTIVATE before this has been successfully performed. */
     }
+    else if( req->type == INSERT || req->type == DELETE )
+    {
+        /* We assume subarray can always shift, because ACTIVATE before this has been successfully performed. */
+    }    
     else if( req->type == READ || req->type == READ_PRECHARGE )
     {
         if( nextRead > (GetEventQueue()->GetCurrentCycle()) /* if it is too early to read */
@@ -1439,6 +1543,12 @@ bool SubArray::IssueCommand( NVMainRequest *req )
             case SHIFT:
                 rv = this->Shift( req );
                 break;
+            case INSERT:
+                rv = this->Insert( req );
+                break;
+            case DELETE:
+                rv = this->Delete( req );
+                break;
 
             case READ:
             case READ_PRECHARGE:
@@ -1503,6 +1613,8 @@ bool SubArray::RequestComplete( NVMainRequest *req )
             /* may implement more functions in the future */
             case ACTIVATE:
             case SHIFT:
+            case INSERT:
+            case DELETE:
             case READ:
             case WRITE:
                 delete req;
@@ -1777,11 +1889,11 @@ ncounter_t SubArray::FindClosestPort(uint64_t dbc, uint64_t domain)
   }
   else
   {
-      int min = abs( rwPortPos[dbc][0] - domain );
+      int min = abs(int(rwPortPos[dbc][0] - domain ));
       for(uint16_t i = 1; i < nPorts; i++)
-        if( abs( rwPortPos[dbc][i] - domain ) < min )
+        if( abs(int(rwPortPos[dbc][i] - domain )) < min )
         {
-            min = abs( rwPortPos[dbc][i] - domain );
+            min = abs(int(rwPortPos[dbc][i] - domain ));
             AP = i;
         }
   }

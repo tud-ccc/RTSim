@@ -37,6 +37,7 @@
 
 /* Add your decoder's include file below. */
 #include "DataEncoders/FlipNWrite/FlipNWrite.h"
+#include "DataEncoders/Skyrmion/SkyrmionWrite.h"
 
 using namespace NVM;
 
@@ -46,6 +47,7 @@ DataEncoder *DataEncoderFactory::CreateDataEncoder( std::string encoderName )
 
     if( encoderName == "default" ) encoder = new DataEncoder( );
     else if( encoderName == "FlipNWrite" ) encoder = new FlipNWrite( );
+    else if( encoderName == "SkyrmionWrite" ) encoder = new SkyrmionWrite( );
 
     return encoder;
 }
