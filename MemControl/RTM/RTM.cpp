@@ -196,7 +196,10 @@ bool RTM::RequestComplete( NVMainRequest * request )
     if( request->type == READ 
         || request->type == READ_PRECHARGE 
         || request->type == WRITE 
-        || request->type == WRITE_PRECHARGE )
+        || request->type == WRITE_PRECHARGE 
+        || request->type == INSERT
+        || request->type == DELETE
+        )
     {
         request->status = MEM_REQUEST_COMPLETE;
         request->completionCycle = GetEventQueue()->GetCurrentCycle();

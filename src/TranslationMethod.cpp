@@ -64,6 +64,7 @@ void TranslationMethod::SetBitWidths( unsigned int rowBits, unsigned int colBits
     bitWidths[MEM_RANK] = rankBits;
     bitWidths[MEM_CHANNEL] = channelBits;
     bitWidths[MEM_SUBARRAY] = subarrayBits;
+    
 }
 
 void TranslationMethod::SetOrder( int row, int col, int bank, int rank, int channel, int subarray )
@@ -142,7 +143,7 @@ void TranslationMethod::SetAddressMappingScheme( std::string scheme )
 
     int row, col, bank, rank, channel, subarray;
     row = col = bank = rank = channel = subarray = 0;
-    int currentOrder = 6;
+    int currentOrder = 6;    
 
     for( addrParser = strtok_r( addrMappingScheme, ":", &savePtr );
             addrParser ; addrParser = strtok_r( NULL, ":", &savePtr ) )

@@ -165,6 +165,8 @@ Params::Params( )
     tRAS = 24;
     tRCD = 9;
     tSH = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
+    tIN = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
+    tDE = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
     tRDB = 2;
     tREFW = 42666667;
     tRFC = 107;
@@ -360,6 +362,8 @@ void Params::SetParams( Config *c )
     ConvertTiming( c, "tRAS", tRAS );
     ConvertTiming( c, "tRCD", tRCD );
     ConvertTiming( c, "tSH", tSH );
+    ConvertTiming( c, "tIN", tIN );
+    ConvertTiming( c, "tDE", tDE );
     ConvertTiming( c, "tRDB", tRDB );
     ConvertTiming( c, "tREFW", tREFW );
     ConvertTiming( c, "tRFC", tRFC );
@@ -412,10 +416,14 @@ void Params::SetParams( Config *c )
           c->GetValueUL( "DOMAINS", COLS );
           c->GetValueUL( "DOMAINS", DOMAINS );
         
-        if( c->GetString( "MemType" ) == "RTM" )
+        if( c->GetString( "MemType" ) == "RTM" ) {
             MemIsRTM = true;
-        else
-            MemIsRTM = false;
+        } else if (c->GetString( "MemType" ) == "RTM-SK" ) {
+            MemIsRTM = true;
+            MemIsSK = true;
+        } else {
+            MemIsRTM = false;        
+        }
     }
     
     if( MemIsRTM )

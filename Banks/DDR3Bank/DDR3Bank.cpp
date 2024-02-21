@@ -391,6 +391,34 @@ bool DDR3Bank::Shift( NVMainRequest *request )
 }
 
 /*
+ * Insert data into the skyrmion array
+ */
+bool DDR3Bank::Insert( NVMainRequest *request )
+{
+
+    /* Timing has been taken care of in the activate operation. so no need to update them! */
+    
+    /* issue INSERT to the target subarray */
+    bool success = GetChild( request )->IssueCommand( request );
+
+    return success;
+}
+
+/*
+ * Delete data from the skyrmion array
+ */
+bool DDR3Bank::Delete( NVMainRequest *request )
+{
+
+    /* Timing has been taken care of in the activate operation. so no need to update them! */
+    
+    /* issue DELETE to the target subarray */
+    bool success = GetChild( request )->IssueCommand( request );
+
+    return success;
+}
+
+/*
  * Read() fulfills the column read function
  */
 bool DDR3Bank::Read( NVMainRequest *request )
@@ -770,6 +798,10 @@ bool DDR3Bank::IsIssuable( NVMainRequest *req, FailReason *reason )
     {
         rv = GetChild( req )->IsIssuable( req, reason );
     }
+    else if(req->type == INSERT || req->type == DELETE )
+    {
+        rv = GetChild( req )->IsIssuable( req, reason );
+    }
     else if( req->type == READ || req->type == READ_PRECHARGE )
     {
         if( nextRead > (GetEventQueue()->GetCurrentCycle()) 
@@ -917,7 +949,12 @@ bool DDR3Bank::IssueCommand( NVMainRequest *req )
             case SHIFT:
                 rv = this->Shift( req );
                 break;
-                
+            case INSERT:
+                rv = this->Insert( req );
+                break;                
+            case DELETE:
+                rv = this->Delete( req );
+                break;
             case READ:
             case READ_PRECHARGE:
                 rv = this->Read( req );

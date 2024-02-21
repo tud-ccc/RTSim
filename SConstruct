@@ -194,17 +194,17 @@ class PrettyPrint(object):
             return strip_build_path(str(f), env)
 
         if len(source) > 0:
-            srcs = map(strip, source)
-            tgts = map(strip, target)
+            srcs = list(map(strip, source))
+            tgts = list(map(strip, target))
             split_src = srcs[0].split("/")
 
             src_basename = os.path.splitext(split_src[-1])[0]
             src_name = src_basename
             suffix = env['OBJSUFFIX']
         else:
-            tgts = map(strip, target)
+            tgts = list(map(strip, target))
             split_src = tgts[0].split("/")
-            src_basename = os.path.splitext(split_src[-1])[0]
+            src_basename = os.path.splitext(split_src[-1])[0]            
             src_name = tgts[0]
             suffix = ''
 
