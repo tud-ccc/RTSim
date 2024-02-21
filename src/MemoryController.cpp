@@ -913,7 +913,7 @@ unsigned int MemoryController::GetID( )
 NVMainRequest *MemoryController::MakeCachedRequest( NVMainRequest *triggerRequest )
 {
     /* This method should be called on *transaction* queue requests, thus only READ/WRITE possible. */
-    assert( triggerRequest->type == READ || triggerRequest->type == WRITE );
+    assert( triggerRequest->type == READ || triggerRequest->type == WRITE || triggerRequest->type == INSERT || triggerRequest->type == DELETE);
 
     NVMainRequest *cachedRequest = new NVMainRequest( );
 
@@ -1599,7 +1599,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
     FailReason reason;
     NVMainRequest *cachedRequest = MakeCachedRequest( req );
 
-    if( GetChild( )->IsIssuable( cachedRequest, &reason ) )
+    if( GetChild( )->IsIssuable( cachedRequest, &reason ) && req->type != INSERT && req->type != DELETE)
     {
         /* Differentiate from row-buffer hits. */
         if ( !activateQueued[rank][bank] 
@@ -1625,6 +1625,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
     {
         delete cachedRequest;
     }
+    
 
     if( !activateQueued[rank][bank] && commandQueues[queueId].empty() )
     {
@@ -1675,7 +1676,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
                 || effectiveRow[rank][bank][subarray] != row 
                 || effectiveMuxedRow[rank][bank][subarray] != muxLevel )
             && commandQueues[queueId].empty() )
-    {
+    {    
         /* Any activate will request the starvation counter */
         starvationCounter[rank][bank][subarray] = 0;
         activateQueued[rank][bank] = true;
@@ -1696,7 +1697,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
         {
              NVMainRequest *shiftRequest = MakeShiftRequest( req ); //Place a shift request before the actual read/write on the command queue
              shiftRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
-             commandQueues[queueId].push_back( shiftRequest );
+             commandQueues[queueId].push_back( shiftRequest );             
         }
         commandQueues[queueId].push_back( req );
         

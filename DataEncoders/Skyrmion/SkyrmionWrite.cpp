@@ -27,62 +27,65 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 * Author list: 
-*   Matt Poremba    ( Email: mrp5060 at psu dot edu 
-*                     Website: http://www.cse.psu.edu/~poremba/ )
+*   Martijn Noorlander  ( Email: m.s.noorlander@student.utwente.nl
+*                       Website: http://www.cse.psu.edu/~poremba/ )
 *******************************************************************************/
 
-#ifndef __NVMADDRESS_H__
-#define __NVMADDRESS_H__
+#include "DataEncoders/Skyrmion/SkyrmionWrite.h"
 
-#include <stdint.h>
+#include <iostream>
 
-namespace NVM {
+using namespace NVM;
 
-class NVMAddress
+SkyrmionWrite::SkyrmionWrite( )
 {
-  public:
-    NVMAddress( );
-    ~NVMAddress( );
 
-    NVMAddress( const NVMAddress& m );
-    NVMAddress( uint64_t addrRow, uint64_t addrCol, uint64_t addrBank,
-                uint64_t addrRank, uint64_t addrChannel, uint64_t addrSA );
+}
+
+SkyrmionWrite::~SkyrmionWrite( )
+{
+
+}
+
+void SkyrmionWrite::SetConfig( Config */*config*/, bool /*createChildren*/ )
+{
+
+}
+
+ncycle_t SkyrmionWrite::Read( NVMainRequest */*request*/ )
+{
+    ncycle_t rv = 0;
+
+    // Do energy stuff
+
+    return rv;
+}
+
+ncycle_t SkyrmionWrite::Write( NVMainRequest */*request*/ )
+{
+    ncycle_t rv = 0;
+
+    // Do energy stuff
+
+    return rv;
+}
+
+void SkyrmionWrite::RegisterStats( )
+{
+
+}
+
+void SkyrmionWrite::CalculateStats( )
+{
+
+}
+
+void SkyrmionWrite::InsertSkyrmion()
+{
+
+}
+
+void SkyrmionWrite::DeleteSkyrmion()
+{
     
-    void SetTranslatedAddress( uint64_t addrRow, uint64_t addrCol, uint64_t addrBank, 
-                               uint64_t addrRank, uint64_t addrChannel, uint64_t addrSA );
-    void SetPhysicalAddress( uint64_t physicalAddress );
-    void SetBitAddress( uint8_t bitAddr );
-    
-    void GetTranslatedAddress( uint64_t *addrRow, uint64_t *addrCol, uint64_t *addrBank, 
-                               uint64_t *addrRank, uint64_t *addrChannel, uint64_t *addrSA );
-    uint64_t GetPhysicalAddress( );
-    uint64_t GetBitAddress( );
-
-    uint64_t GetRow( );
-    uint64_t GetCol( );
-    uint64_t GetBank( );
-    uint64_t GetRank( );
-    uint64_t GetChannel( );
-    uint64_t GetSubArray( );
-    
-    bool IsTranslated( );
-    bool HasPhysicalAddress( );
-
-    NVMAddress& operator=( const NVMAddress& m );
-  
- private:
-    bool translated;
-    bool hasPhysicalAddress;
-    uint64_t physicalAddress;
-    uint64_t subarray;
-    uint64_t row;
-    uint64_t col;
-    uint64_t bank;
-    uint64_t rank;
-    uint64_t channel;
-    uint64_t bit;
-};
-
-};
-
-#endif
+}
