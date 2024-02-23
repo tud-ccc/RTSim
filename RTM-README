@@ -90,3 +90,6 @@ Sections
 If you need any help in understanding and/or hacking the simulator, please reach us at asif_ali.khan@tu-dresden.de !
 
 Created on 3/15/2019
+
+The issue below describes how to compile for gem5, this requires a specific commit version since RTSim is based on an old NVMain build
+https://github.com/SEAL-UCSB/NVmain/issues/4#issuecomment-954666264

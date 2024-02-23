@@ -137,6 +137,20 @@ bool NVMAddress::HasPhysicalAddress( )
     return hasPhysicalAddress;
 }
 
+NVMAddress::NVMAddress( const NVMAddress& m)
+{
+    translated = m.translated;
+    hasPhysicalAddress = m.hasPhysicalAddress;
+    physicalAddress = m.physicalAddress;
+    row = m.row;
+    col = m.col;
+    bank = m.bank;
+    rank = m.rank;
+    channel = m.channel;
+    subarray = m.subarray;
+    bit = m.bit;    
+}
+
 NVMAddress& NVMAddress::operator=( const NVMAddress& m )
 {
     translated = m.translated;

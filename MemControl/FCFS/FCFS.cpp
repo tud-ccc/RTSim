@@ -110,6 +110,8 @@ bool FCFS::RequestComplete( NVMainRequest * request )
     if( request->type == READ 
         || request->type == READ_PRECHARGE 
         || request->type == WRITE 
+        || request->type == INSERT 
+        || request->type == DELETE 
         || request->type == WRITE_PRECHARGE
         )
     {

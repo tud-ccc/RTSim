@@ -142,6 +142,16 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
                     operation = READ;
                 else if( field == "W" )
                     operation = WRITE;
+                else if ( field == "I" ) // Skyrmion insert 
+                {
+                    operation = INSERT;
+                    // std::cout << "NVMainTraceReader: Reached INSERT!" << std::endl;
+                }
+                else if ( field == "D" ) // Skyrmion delete
+                {
+                    operation = DELETE;
+                    // std::cout << "NVMainTraceReader: Reached DELETE!" << std::endl;
+                }
                 else
                     std::cout << "Warning: Unknown operation `" 
                         << field << "'" << std::endl;
@@ -234,7 +244,7 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
 
     linenum++;
 
-    if( operation != READ && operation != WRITE )
+    if( operation != READ && operation != WRITE && operation != INSERT && operation != DELETE)
         std::cout << "NVMainTraceReader: Unknown Operation: " << operation 
             << "Line number is " << linenum << ". Full Line is \"" << fullLine 
             << "\"" << std::endl;

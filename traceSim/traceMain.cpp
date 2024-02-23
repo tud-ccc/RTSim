@@ -208,16 +208,28 @@ int TraceMain::RunTrace( int argc, char *argv[] )
             std::cout << "Could not read next line from trace file!" 
                 << std::endl;
 
+            std::cout << "Remaining requests: " << outstandingRequests << std::endl;
+
+            NVM::ncounter_t outstandingRequestsPrev = outstandingRequests;
+
             /* Wait for requests to drain. */
             while( outstandingRequests > 0 )
             {
                 globalEventQueue->Cycle( 1 );
               
+                // std::cout << currentCycle << " " << simulateCycles << std::endl;
+
                 currentCycle++;
 
                 /* Retry drain each cycle if it failed. */
                 if( !draining )
                     draining = Drain( );
+                
+
+                if (outstandingRequestsPrev != outstandingRequests) {
+                    std::cout << "Remaining requests: " << outstandingRequests << std::endl;
+                    outstandingRequestsPrev = outstandingRequests;
+                }
             }
 
             break;
@@ -243,7 +255,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
             tl->SetLine( tl->GetAddress( ), tl->GetOperation( ), 0, 
                          tl->GetData( ), tl->GetOldData( ), tl->GetThreadId( ) );
 
-        if( request->type != READ && request->type != WRITE )
+        if( request->type != READ && request->type != WRITE && request->type != INSERT && request->type != DELETE )
             std::cout << "traceMain: Unknown Operation: " << request->type 
                 << std::endl;
 

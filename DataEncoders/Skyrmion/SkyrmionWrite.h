@@ -27,62 +27,37 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * 
 * Author list: 
-*   Matt Poremba    ( Email: mrp5060 at psu dot edu 
-*                     Website: http://www.cse.psu.edu/~poremba/ )
+*   Martijn Noorlander  ( Email: m.s.noorlander@student.utwente.nl
+*                       Website: http://www.cse.psu.edu/~poremba/ )
 *******************************************************************************/
 
-#ifndef __NVMADDRESS_H__
-#define __NVMADDRESS_H__
+#ifndef __NVMAIN_SKYRMIONWRITE_H__
+#define __NVMAIN_SKYRMIONWRITE_H__
 
-#include <stdint.h>
+#include "src/DataEncoder.h"
+#include <set>
 
 namespace NVM {
+    class SkyrmionWrite : public DataEncoder
+    {
+        public:
+            SkyrmionWrite( );
+            ~SkyrmionWrite( );
 
-class NVMAddress
-{
-  public:
-    NVMAddress( );
-    ~NVMAddress( );
+            void SetConfig( Config *config, bool createChildren = true );
 
-    NVMAddress( const NVMAddress& m );
-    NVMAddress( uint64_t addrRow, uint64_t addrCol, uint64_t addrBank,
-                uint64_t addrRank, uint64_t addrChannel, uint64_t addrSA );
-    
-    void SetTranslatedAddress( uint64_t addrRow, uint64_t addrCol, uint64_t addrBank, 
-                               uint64_t addrRank, uint64_t addrChannel, uint64_t addrSA );
-    void SetPhysicalAddress( uint64_t physicalAddress );
-    void SetBitAddress( uint8_t bitAddr );
-    
-    void GetTranslatedAddress( uint64_t *addrRow, uint64_t *addrCol, uint64_t *addrBank, 
-                               uint64_t *addrRank, uint64_t *addrChannel, uint64_t *addrSA );
-    uint64_t GetPhysicalAddress( );
-    uint64_t GetBitAddress( );
+            ncycle_t Read( NVMainRequest *request);
+            ncycle_t Write( NVMainRequest *request);
 
-    uint64_t GetRow( );
-    uint64_t GetCol( );
-    uint64_t GetBank( );
-    uint64_t GetRank( );
-    uint64_t GetChannel( );
-    uint64_t GetSubArray( );
-    
-    bool IsTranslated( );
-    bool HasPhysicalAddress( );
+            void RegisterStats( );
+            void CalculateStats( );
 
-    NVMAddress& operator=( const NVMAddress& m );
-  
- private:
-    bool translated;
-    bool hasPhysicalAddress;
-    uint64_t physicalAddress;
-    uint64_t subarray;
-    uint64_t row;
-    uint64_t col;
-    uint64_t bank;
-    uint64_t rank;
-    uint64_t channel;
-    uint64_t bit;
-};
+        private:
 
+            void InsertSkyrmion();
+
+            void DeleteSkyrmion();
+    };
 };
 
 #endif

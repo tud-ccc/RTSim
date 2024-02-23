@@ -296,7 +296,10 @@ bool FRFCFS_WQF::RequestComplete( NVMainRequest * request )
     if( request->type == READ 
         || request->type == READ_PRECHARGE 
         || request->type == WRITE 
-        || request->type == WRITE_PRECHARGE )
+        || request->type == WRITE_PRECHARGE 
+        || request->type == INSERT
+        || request->type == DELETE        
+        )
     {
         /* this isn't really used anymore, but doesn't hurt */
         request->status = MEM_REQUEST_COMPLETE; 
