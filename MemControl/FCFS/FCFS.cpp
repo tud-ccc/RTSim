@@ -111,6 +111,8 @@ bool FCFS::RequestComplete( NVMainRequest * request )
         || request->type == READ_PRECHARGE 
         || request->type == WRITE 
         || request->type == INSERT 
+        || request->type == LIM
+        || request->type == PARALLEL
         || request->type == DELETE 
         || request->type == WRITE_PRECHARGE
         )

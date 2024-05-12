@@ -147,10 +147,18 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
                     operation = INSERT;
                     // std::cout << "NVMainTraceReader: Reached INSERT!" << std::endl;
                 }
+                else if ( field == "P")
+                {
+                    operation = PARALLEL;
+                }
                 else if ( field == "D" ) // Skyrmion delete
                 {
                     operation = DELETE;
                     // std::cout << "NVMainTraceReader: Reached DELETE!" << std::endl;
+                }
+                else if ( field == "L") // Skyrmion LIM
+                {
+                    operation = LIM;
                 }
                 else
                     std::cout << "Warning: Unknown operation `" 
@@ -244,7 +252,7 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
 
     linenum++;
 
-    if( operation != READ && operation != WRITE && operation != INSERT && operation != DELETE)
+    if( operation != READ && operation != WRITE && operation != INSERT && operation != DELETE && operation != LIM && operation != PARALLEL)
         std::cout << "NVMainTraceReader: Unknown Operation: " << operation 
             << "Line number is " << linenum << ". Full Line is \"" << fullLine 
             << "\"" << std::endl;

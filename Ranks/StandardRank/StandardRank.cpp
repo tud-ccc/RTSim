@@ -319,9 +319,25 @@ bool StandardRank::Insert( NVMainRequest *request )
     return true;
 }
 
+bool StandardRank::Parallel (NVMainRequest *request)
+{
+    GetChild( request )->IssueCommand( request );
+
+    return true;
+}
+
 bool StandardRank::Delete( NVMainRequest *request )
 {
     /* issue DELETE to target bank */
+    GetChild( request )->IssueCommand( request );
+
+    return true;
+}
+
+
+bool StandardRank::Lim( NVMainRequest *request )
+{
+    /* issue LIM to target bank */
     GetChild( request )->IssueCommand( request );
 
     return true;
@@ -654,7 +670,7 @@ ncycle_t StandardRank::NextIssuable( NVMainRequest *request )
     else if( request->type == READ || request->type == READ_PRECHARGE ) nextCompare = nextRead;
     else if( request->type == WRITE || request->type == WRITE_PRECHARGE ) nextCompare = nextWrite;
     else if( request->type == PRECHARGE || request->type == PRECHARGE_ALL ) nextCompare = nextPrecharge;
-    else if( request->type == SHIFT || request->type == INSERT || request->type == DELETE ) nextCompare = nextRead; // TODO
+    else if( request->type == SHIFT || request->type == INSERT || request->type == DELETE || request->type == LIM || request->type == PARALLEL) nextCompare = nextRead; // TODO
     else {
         std::cerr << "Invalid request type << " << request->type << std::endl;
         assert(false);
@@ -716,7 +732,7 @@ bool StandardRank::IsIssuable( NVMainRequest *req, FailReason *reason )
     {
         rv = GetChild( req )->IsIssuable( req, reason );
     }
-    else if( req->type == INSERT || req->type == DELETE )
+    else if( req->type == INSERT || req->type == DELETE || req->type == LIM || req->type == PARALLEL)
     {
         rv = GetChild( req )->IsIssuable( req, reason );
     }    
@@ -839,9 +855,15 @@ bool StandardRank::IssueCommand( NVMainRequest *req )
 
             case INSERT:
                 rv = this->Insert( req );
-                break;
+                break;                
             case DELETE:
                 rv = this->Delete( req );
+                break;
+            case LIM:
+                rv = this->Lim (req );
+                break;
+            case PARALLEL:
+                rv = this->Parallel( req );
                 break;
 
             case READ:

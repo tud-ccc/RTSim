@@ -123,6 +123,9 @@ class Params
 
     bool MemIsRTM;
     bool MemIsSK;
+    bool LimSkyrmionReuse;
+    bool WordBasedMapping;
+    bool ParallelPlusWrite;
     bool PrintPreTrace;
     bool EchoPreTrace;
 
@@ -136,6 +139,7 @@ class Params
     ncounter_t PeriodicStatsInterval;
 
     ncounter_t DBCS, DOMAINS, nPorts, rwPortInitPos;
+    ncounter_t LimDBCS;
     std::string PortAccess;
     std::string PortUpdate;
     
@@ -162,6 +166,7 @@ class Params
     ncycle_t tSH;
     ncycle_t tIN;
     ncycle_t tDE;
+    ncycle_t tLIM;
     ncycle_t tRDB;
     ncycle_t tREFW;
     ncycle_t tRFC;

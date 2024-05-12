@@ -198,6 +198,8 @@ bool RTM::RequestComplete( NVMainRequest * request )
         || request->type == WRITE 
         || request->type == WRITE_PRECHARGE 
         || request->type == INSERT
+        || request->type == PARALLEL
+        || request->type == LIM
         || request->type == DELETE
         )
     {

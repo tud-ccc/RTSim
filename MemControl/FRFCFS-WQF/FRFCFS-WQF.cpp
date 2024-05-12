@@ -298,7 +298,9 @@ bool FRFCFS_WQF::RequestComplete( NVMainRequest * request )
         || request->type == WRITE 
         || request->type == WRITE_PRECHARGE 
         || request->type == INSERT
+        || request->type == PARALLEL
         || request->type == DELETE        
+        || request->type == LIM
         )
     {
         /* this isn't really used anymore, but doesn't hurt */

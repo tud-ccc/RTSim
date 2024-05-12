@@ -146,6 +146,8 @@ class StandardRank : public Rank
     bool Shift( NVMainRequest *request );
     bool Insert( NVMainRequest *request );
     bool Delete( NVMainRequest *request );
+    bool Lim( NVMainRequest *request );
+    bool Parallel( NVMainRequest *request );
     bool Read( NVMainRequest *request );
     bool Write( NVMainRequest *request );
     bool Precharge( NVMainRequest *request );

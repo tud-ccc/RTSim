@@ -405,6 +405,21 @@ bool DDR3Bank::Insert( NVMainRequest *request )
 }
 
 /*
+ * Insert data into the skyrmion array
+ */
+bool DDR3Bank::Parallel( NVMainRequest *request )
+{
+
+    /* Timing has been taken care of in the activate operation. so no need to update them! */
+    
+    /* issue PARALLEL to the target subarray */
+    bool success = GetChild( request )->IssueCommand( request );
+
+    return success;
+}
+
+
+/*
  * Delete data from the skyrmion array
  */
 bool DDR3Bank::Delete( NVMainRequest *request )
@@ -417,6 +432,22 @@ bool DDR3Bank::Delete( NVMainRequest *request )
 
     return success;
 }
+
+
+/*
+ * Lim Operation from the skyrmion array
+ */
+bool DDR3Bank::Lim( NVMainRequest *request )
+{
+
+    /* Timing has been taken care of in the activate operation. so no need to update them! */
+    
+    /* issue Lim to the target subarray */
+    bool success = GetChild( request )->IssueCommand( request );
+
+    return success;
+}
+
 
 /*
  * Read() fulfills the column read function
@@ -798,7 +829,7 @@ bool DDR3Bank::IsIssuable( NVMainRequest *req, FailReason *reason )
     {
         rv = GetChild( req )->IsIssuable( req, reason );
     }
-    else if(req->type == INSERT || req->type == DELETE )
+    else if(req->type == INSERT || req->type == DELETE || req->type == LIM || req->type == PARALLEL)
     {
         rv = GetChild( req )->IsIssuable( req, reason );
     }
@@ -951,9 +982,15 @@ bool DDR3Bank::IssueCommand( NVMainRequest *req )
                 break;
             case INSERT:
                 rv = this->Insert( req );
-                break;                
+                break;  
+            case PARALLEL:
+                rv = this->Parallel( req );
+                break;                                
             case DELETE:
                 rv = this->Delete( req );
+                break;
+            case LIM:
+                rv = this->Lim( req );
                 break;
             case READ:
             case READ_PRECHARGE:

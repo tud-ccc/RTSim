@@ -191,7 +191,9 @@ bool FRFCFS::RequestComplete( NVMainRequest * request )
         || request->type == WRITE 
         || request->type == WRITE_PRECHARGE 
         || request->type == INSERT
+        || request->type == PARALLEL
         || request->type == DELETE
+        || request->type == LIM
         )
     {
         request->status = MEM_REQUEST_COMPLETE;

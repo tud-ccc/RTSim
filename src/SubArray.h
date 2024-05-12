@@ -96,8 +96,10 @@ class SubArray : public NVMObject
     bool Read( NVMainRequest *request );
     bool Write( NVMainRequest *request );
     bool Shift( NVMainRequest *request );
+    bool Parallel( NVMainRequest *request );
     bool Insert( NVMainRequest *request );
     bool Delete( NVMainRequest *request );
+    bool Lim( NVMainRequest *request );
     bool Precharge( NVMainRequest *request );
     bool Refresh( NVMainRequest *request );
 
@@ -147,13 +149,15 @@ class SubArray : public NVMObject
     ncounter_t shiftReqs;
     ncounter_t insertReqs;
     ncounter_t deleteReqs;
+    ncounter_t limReqs;
     
     int **rwPortPos; //first dimension helds DBC and 2nd dim stores port 
     int **rwPortInitPos; // initial positions of ports, used in the static port update policy
-    ncounter_t numShifts, totalnumShifts;
+    ncounter_t numShifts, totalnumShifts, numParallelShifts;
     ncounter_t nPorts;
     ncounter_t numInserts, totalnumInserts;
     ncounter_t numDeletes, totalnumDeletes;
+    ncounter_t numLims, totalNumLims;
     ncounter_t numSkyrmionCreated; // Number of skyrmions created
     ncounter_t numSkyrmionDestroyed; // Number of skyrmions deleted
     bool StaticPortAcces;

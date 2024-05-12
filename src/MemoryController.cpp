@@ -913,7 +913,7 @@ unsigned int MemoryController::GetID( )
 NVMainRequest *MemoryController::MakeCachedRequest( NVMainRequest *triggerRequest )
 {
     /* This method should be called on *transaction* queue requests, thus only READ/WRITE possible. */
-    assert( triggerRequest->type == READ || triggerRequest->type == WRITE || triggerRequest->type == INSERT || triggerRequest->type == DELETE);
+    assert( triggerRequest->type == READ || triggerRequest->type == WRITE || triggerRequest->type == INSERT || triggerRequest->type == DELETE || triggerRequest->type == LIM || triggerRequest->type == PARALLEL );
 
     NVMainRequest *cachedRequest = new NVMainRequest( );
 
@@ -1599,7 +1599,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
     FailReason reason;
     NVMainRequest *cachedRequest = MakeCachedRequest( req );
 
-    if( GetChild( )->IsIssuable( cachedRequest, &reason ) && req->type != INSERT && req->type != DELETE)
+    if( GetChild( )->IsIssuable( cachedRequest, &reason ) && req->type != INSERT && req->type != DELETE && req->type != LIM && req->type != PARALLEL)
     {
         /* Differentiate from row-buffer hits. */
         if ( !activateQueued[rank][bank] 
@@ -1659,7 +1659,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
         }
         else
         {
-            if( p->MemIsRTM )
+            if( p->MemIsRTM && !(p->MemIsSK && req->type == LIM)) //Don't auto shift in case of Lim
             {
                 NVMainRequest *shiftRequest = MakeShiftRequest( req ); //Place a shift request before the actual read/write on the command queue
                 shiftRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
@@ -1693,7 +1693,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
         actRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
         commandQueues[queueId].push_back( actRequest );
         
-        if( p->MemIsRTM )
+        if( p->MemIsRTM && !(p->MemIsSK && req->type == LIM))
         {
              NVMainRequest *shiftRequest = MakeShiftRequest( req ); //Place a shift request before the actual read/write on the command queue
              shiftRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
@@ -1728,12 +1728,13 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
             /* if Restricted Close-Page is applied, we should never be here */
             assert( p->ClosePage != 2 );
 
-            if( p->MemIsRTM )
+            if( p->MemIsRTM && !(p->MemIsSK && req->type == LIM))
             {
                 NVMainRequest *shiftRequest = MakeShiftRequest( req ); //Place a shift request before the actual read/write on the command queue
                 shiftRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
                 commandQueues[queueId].push_back( shiftRequest );
             }
+
             commandQueues[queueId].push_back( MakeImplicitPrechargeRequest( req ) );
             activeSubArray[rank][bank][subarray] = false;
             effectiveRow[rank][bank][subarray] = p->ROWS;
@@ -1754,7 +1755,7 @@ bool MemoryController::IssueMemoryCommands( NVMainRequest *req )
         }
         else
         {
-             if( p->MemIsRTM )
+            if( p->MemIsRTM && !(p->MemIsSK && req->type == LIM))
             {
                 NVMainRequest *shiftRequest = MakeShiftRequest( req ); //Place a shift request before the actual read/write on the command queue
                 shiftRequest->flags |= (writingArray != NULL && writingArray->IsWriting( )) ? NVMainRequest::FLAG_PRIORITY : 0;
