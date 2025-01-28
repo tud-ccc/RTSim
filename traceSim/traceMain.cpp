@@ -255,7 +255,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
             tl->SetLine( tl->GetAddress( ), tl->GetOperation( ), 0, 
                          tl->GetData( ), tl->GetOldData( ), tl->GetThreadId( ) );
 
-        if( request->type != READ && request->type != WRITE && request->type != INSERT && request->type != DELETE )
+        if( request->type != READ && request->type != WRITE && request->type != INSERT && request->type != DELETE  && request->type != LIM && request->type!=PARALLEL)
             std::cout << "traceMain: Unknown Operation: " << request->type 
                 << std::endl;
 

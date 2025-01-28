@@ -142,6 +142,7 @@ Params::Params( )
     DOMAINS = COLS;
     
     MemIsRTM = false;
+    LimSkyrmionReuse = false;
     
     PortAccess = "static";
     PortUpdate = "lazy";
@@ -167,6 +168,7 @@ Params::Params( )
     tSH = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
     tIN = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
     tDE = 0; //default value is set to 0 so that it could not effect the timings of other types of memories 
+    tLIM = 0;
     tRDB = 2;
     tREFW = 42666667;
     tRFC = 107;
@@ -331,6 +333,7 @@ void Params::SetParams( Config *c )
 
     c->GetValueUL( "RefreshRows", RefreshRows );
     c->GetBool( "UseRefresh", UseRefresh );
+    c->GetBool( "LimSkyrmionReuse", LimSkyrmionReuse);
     c->GetBool( "StaggerRefresh", StaggerRefresh );
     c->GetBool( "UsePrecharge", UsePrecharge );
 
@@ -364,6 +367,7 @@ void Params::SetParams( Config *c )
     ConvertTiming( c, "tSH", tSH );
     ConvertTiming( c, "tIN", tIN );
     ConvertTiming( c, "tDE", tDE );
+    ConvertTiming( c, "tLIM", tLIM );
     ConvertTiming( c, "tRDB", tRDB );
     ConvertTiming( c, "tREFW", tREFW );
     ConvertTiming( c, "tRFC", tRFC );
@@ -421,6 +425,7 @@ void Params::SetParams( Config *c )
         } else if (c->GetString( "MemType" ) == "RTM-SK" ) {
             MemIsRTM = true;
             MemIsSK = true;
+            c->GetValueUL("LimDBCS", LimDBCS);
         } else {
             MemIsRTM = false;        
         }
@@ -434,7 +439,28 @@ void Params::SetParams( Config *c )
         exit(-1);
         }
     }
+
+    if ( MemIsSK && c->KeyExists("SkMapping"))
+    {
+        if (c->GetString("SkMapping") == "word-based") {
+            WordBasedMapping = true;
+        } else {
+            WordBasedMapping = false;
+        }
+    } else {
+        WordBasedMapping = false;
+    }
     
+    if ( MemIsSK && c->KeyExists("SkWriteMethod"))
+    {
+        if (c->GetString("SkWriteMethod") == "plus") {
+            ParallelPlusWrite = true;
+        } else {
+            ParallelPlusWrite = false;
+        }
+    } else {
+        ParallelPlusWrite = false;
+    }
     
     c->GetValueUL( "MLCLevels", MLCLevels );
     c->GetValueUL( "WPVariance",  WPVariance );
